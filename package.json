@@ -1,6 +1,7 @@
 {
   "name": "oeis",
   "displayName": "oeis",
+  "publisher": "slfotg",
   "description": "Online Encyclopedia of Integer Sequences",
   "version": "0.0.2",
   "repository": {
