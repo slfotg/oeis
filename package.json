@@ -16,8 +16,21 @@
       {
         "command": "oeis.search",
         "title": "OEIS: Sequence Search"
+      },
+      {
+        "command": "oeis.searchSelected",
+        "title": "OEIS: Search Selected Text"
       }
-    ]
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "when": "editorHasSelection",
+          "command": "oeis.searchSelected",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "lint": "eslint .",
