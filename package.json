@@ -2,7 +2,11 @@
   "name": "oeis",
   "displayName": "oeis",
   "description": "Online Encyclopedia of Integer Sequences",
-  "version": "0.0.1",
+  "version": "0.0.2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/slfotg/oeis"
+  },
   "engines": {
     "vscode": "^1.92.0"
   },

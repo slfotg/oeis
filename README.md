@@ -23,19 +23,15 @@ I recommend creating a key binding for the command. I'm currently using Ctrl+Alt
 ❯ npm install -g vsce
 ```
 
-2. Create package with vsce (type y to continue through warnings)
+2. Create package with vsce
 ```
 ❯ vsce package
- WARNING  A 'repository' field is missing from the 'package.json' manifest file.
-Do you want to continue? [y/N] y
- WARNING  LICENSE.md, LICENSE.txt or LICENSE not found
-Do you want to continue? [y/N] y
- DONE  Packaged: /home/sam/repos/oeis/oeis-0.0.1.vsix (150 files, 357.77KB)
+ DONE  Packaged: /home/sam/repos/oeis/oeis-0.0.2.vsix (151 files, 358.69KB)
 ```
 
 3. Install the package
 ```
-❯ code --install-extension oeis-0.0.1.vsix --force
+❯ code --install-extension oeis-0.0.2.vsix --force
 Installing extensions...
-Extension 'oeis-0.0.1.vsix' was successfully installed.
+Extension 'oeis-0.0.2.vsix' was successfully installed.
 ```
