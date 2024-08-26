@@ -19,9 +19,7 @@ async function showResults(results, value) {
 }
 
 async function searchOeis(value) {
-	console.log(value);
 	const response = await axios.get(oeis.searchUrl, { params: { q: value, fmt: 'json' } });
-	console.log(response);
 
 	const results = response.data.results.map(({ number, data, name }) => {
 		const seqId = "A" + number.toString().padStart(6, '0');
@@ -31,7 +29,6 @@ async function searchOeis(value) {
 			detail: `[${data}]`,
 		}
 	});
-	console.log(results);
 
 	showResults(results, value);
 }
