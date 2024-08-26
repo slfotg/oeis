@@ -15,23 +15,3 @@ After selecting the "OEIS: Sequence Search" command, just type any sequence like
 If any sequences are found, they will be displayed in a drop down with basic information. When you select one of those items, you will be brought to the OEIS page on that sequence in your browser.
 
 I recommend creating a key binding for the command. I'm currently using Ctrl+Alt+S.
-
-## Installation instructions
-
-1. Install vsce
-```
-❯ npm install -g vsce
-```
-
-2. Create package with vsce
-```
-❯ vsce package
- DONE  Packaged: /home/sam/repos/oeis/oeis-0.0.2.vsix (151 files, 358.69KB)
-```
-
-3. Install the package
-```
-❯ code --install-extension oeis-0.0.2.vsix --force
-Installing extensions...
-Extension 'oeis-0.0.2.vsix' was successfully installed.
-```
