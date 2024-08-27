@@ -88,8 +88,16 @@ function getHtml(label, context) {
 						order: 2;
 						width: 90%;
 					}
+					div.seq {
+						margin-left: 16px;
+						text-align: start;
+						text-indent: -16px;
+						white-space-collapse: collapse;
+						text-wrap: wrap;
+					}
 					div.seq tt {
-						text-indent: 3em hanging each-line;
+						text-indent: -16px;
+						white-space-collapse: preserve;
 					}
 				</style>
 				<title>${label}</title>
