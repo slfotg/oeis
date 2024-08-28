@@ -4,6 +4,7 @@ const axios = require('axios');
 const oeis = {
 	url: 'https://oeis.org',
 	searchUrl: 'https://oeis.org/search',
+	wikiURL: 'https://oeis.org/wiki',
 	sections: [
 		['offset', 'Offset'],
 		['comment', 'Comments'],
@@ -24,9 +25,16 @@ function splitData(data) {
 	return data.split(',').join(', ');
 }
 
+function addLinks(line) {
+	// TODO - This code is buggy right now... A###### found in existing links causes problems
+	return line
+		.replaceAll(/ (A\d{6})/g, ` <a href="#$1">$1</a>`)
+		.replaceAll(/ _([a-zA-Z\. ]+)_/g, ` <a href="${oeis.wikiURL}/User:$1">$1</a>`)
+}
+
 function splitLines(lines) {
-	if (typeof lines === 'string') return `<div class="seq"><tt>${lines}</tt></div>`;
-	return lines.map(line => `<div class="seq"><tt>${line}</tt></div>`).join('\n');
+	if (typeof lines === 'string') return `<div class="seq"><tt>${addLinks(lines)}</tt></div>`;
+	return lines.map(line => `<div class="seq"><tt>${addLinks(line)}</tt></div>`).join('\n');
 }
 
 function displaySection(key, label, data) {
@@ -128,7 +136,7 @@ async function showResults(results, value, context) {
 	});
 	if (!item) return;
 	const url = `${oeis.url}/${item.label}`;
-	var panel = vscode.window.createWebviewPanel('oeis', item.label, vscode.ViewColumn.One, { enableScripts: true });
+	let panel = vscode.window.createWebviewPanel('oeis', item.label, vscode.ViewColumn.One, { enableScripts: true });
 	const html = getHtml(item.label, context);
 	panel.webview.html = html;
 }
@@ -173,12 +181,45 @@ function activate(context) {
 		if (!editor) return;
 
 		const selection = editor.selection;
+		if (!selection) return;
 		const value = editor.document.getText(selection);
 		searchOeis(value, context);
 	});
 
+	const linkProvider = vscode.window.registerTerminalLinkProvider({
+		provideTerminalLinks: (context, token) => {
+			// matches:
+			// "1,2,3,4"
+			// "1, 2, 3, 4"
+			// "[1,2,3,4]"
+			// "[1, 2, 3, 4]"
+			// 1, 2, 3...
+			const matchesSequence = /\[?(\d+, ?)+ ?\d+\]?/g;
+			const matches = [...context.line.matchAll(matchesSequence)];
+
+			if (!matches) return [];
+			if (matches.length === 0) {
+				return [];
+			}
+
+			const links = matches.map(m => {
+				return {
+					length: m[0].length,
+					startIndex: m.index,
+					tooltip: 'Search Sequence',
+					data: m[0],
+				};
+			});
+			return links;
+		},
+		handleTerminalLink: (link) => {
+			searchOeis(link.data, context);
+		}
+	});
+
 	context.subscriptions.push(oeisSearch);
 	context.subscriptions.push(oeisSearchSelected);
+	context.subscriptions.push(linkProvider);
 }
 
 function deactivate() { }
