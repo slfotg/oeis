@@ -2,45 +2,46 @@ const vscode = require('vscode');
 const axios = require('axios');
 
 const oeis = {
-	url: 'https://oeis.org',
-	searchUrl: 'https://oeis.org/search',
-	wikiURL: 'https://oeis.org/wiki',
-	sections: [
-		['offset', 'Offset'],
-		['comment', 'Comments'],
-		['reference', 'References'],
-		['link', 'Links'],
-		['formula', 'Formula'],
-		['example', 'Example'],
-		['maple', 'Maple'],
-		['mathematica', 'Mathematica'],
-		['program', 'Prog'],
-		['xref', 'Crossrefs'],
-		['keyword', 'Keywords'],
-		['author', 'Author']
-	]
+    url: 'https://oeis.org',
+    searchUrl: 'https://oeis.org/search',
+    wikiURL: 'https://oeis.org/wiki',
+    sections: [
+        ['offset', 'Offset'],
+        ['comment', 'Comments'],
+        ['reference', 'References'],
+        ['link', 'Links'],
+        ['formula', 'Formula'],
+        ['example', 'Example'],
+        ['maple', 'Maple'],
+        ['mathematica', 'Mathematica'],
+        ['program', 'Prog'],
+        ['xref', 'Crossrefs'],
+        ['keyword', 'Keywords'],
+        ['author', 'Author']
+    ]
 }
 
 function splitData(data) {
-	return data.split(',').join(', ');
+    return data.split(',').join(', ');
 }
 
 function addLinks(line) {
-	// TODO - This code is buggy right now... A###### found in existing links causes problems
-	return line
-		.replaceAll(/ (A\d{6})/g, ` <a href="#$1">$1</a>`)
-		.replaceAll(/ _([a-zA-Z\. ]+)_/g, ` <a href="${oeis.wikiURL}/User:$1">$1</a>`)
+    // TODO - This code is buggy right now... A###### found in existing links causes problems
+    return line
+        .replaceAll(/ (A\d{6})/g, ` <a href="#$1" class="seq-link">$1</a>`)
+        .replaceAll(/ _([a-zA-Z\. ]+)_/g, ` <a href="${oeis.wikiURL}/User:$1">$1</a>`)
 }
 
 function splitLines(lines) {
-	if (typeof lines === 'string') return `<div class="seq"><tt>${addLinks(lines)}</tt></div>`;
-	return lines.map(line => `<div class="seq"><tt>${addLinks(line)}</tt></div>`).join('\n');
+    if (typeof lines === 'string') return `<div class="seq"><tt>${addLinks(lines)}</tt></div>`;
+    return lines.map(line => `<div class="seq"><tt>${addLinks(line)}</tt></div>`).join('\n');
 }
 
 function displaySection(key, label, data) {
-	const lines = data[key];
-	if (!lines) return '';
-	return `<br />
+    if (!data) return '';
+    const lines = data[key];
+    if (!lines) return '';
+    return `<br />
 			<div class="section">
 				<div class="label">
 					<tt>${label}</tt>
@@ -55,9 +56,10 @@ function displaySection(key, label, data) {
  * @param {vscode.ExtensionContext} context
  */
 function getHtml(label, context) {
-	const response = context.workspaceState.get(label);
-	const sections = oeis.sections.map(([key, label]) => displaySection(key, label, response)).join('\n');
-	return `<!DOCTYPE html>
+    const response = context.workspaceState.get(label);
+    if (!response) return 'Sequence not found';
+    const sections = oeis.sections.map(([key, label]) => displaySection(key, label, response)).join('\n');
+    return `<!DOCTYPE html>
 			<html lang="en">
 			<head>
 				<meta charset="UTF-8">
@@ -120,111 +122,137 @@ function getHtml(label, context) {
 					<hr />
 					${sections}
 				</div>
+				<script>
+				(function() {
+					const vscode = acquireVsCodeApi();
+					const links = document.getElementsByClassName("seq-link");
+
+					for (let i = 0; i < links.length; i += 1) {
+						links[i].addEventListener("click", function(e) {
+							e.preventDefault();
+							vscode.postMessage(this.text);
+						});
+					}
+				}());
+				</script>
 			</body>
 			</html>`;
+}
+
+async function showSequence(sequenceId, context) {
+    const url = `${oeis.url}/${sequenceId}`;
+    let panel = vscode.window.createWebviewPanel('oeis', sequenceId, vscode.ViewColumn.One, { enableScripts: true });
+    const html = getHtml(sequenceId, context);
+    panel.webview.html = html;
+    panel.webview.onDidReceiveMessage(
+        message => {
+            showSequence(message, context);
+        },
+        undefined,
+        context.subscriptions
+    );
 }
 
 /**
  * @param {vscode.ExtensionContext} context
  */
 async function showResults(results, value, context) {
-	const item = await vscode.window.showQuickPick(results, {
-		title: `Search results ${value}`,
-		ignoreFocusOut: true,
-		matchOnDescription: true,
-		matchOnDetail: true,
-	});
-	if (!item) return;
-	const url = `${oeis.url}/${item.label}`;
-	let panel = vscode.window.createWebviewPanel('oeis', item.label, vscode.ViewColumn.One, { enableScripts: true });
-	const html = getHtml(item.label, context);
-	panel.webview.html = html;
+    const item = await vscode.window.showQuickPick(results, {
+        title: `Search results ${value}`,
+        ignoreFocusOut: true,
+        matchOnDescription: true,
+        matchOnDetail: true,
+    });
+    if (!item) return;
+    showSequence(item.label, context);
 }
 
 /**
  * @param {vscode.ExtensionContext} context
  */
 async function searchOeis(value, context) {
-	const response = await axios.get(oeis.searchUrl, { params: { q: value, fmt: 'json' } });
+    const response = await axios.get(oeis.searchUrl, { params: { q: value, fmt: 'json' } });
 
-	const results = response.data.results.map(({ number, data, name }) => {
-		const seqId = "A" + number.toString().padStart(6, '0');
-		return {
-			label: seqId,
-			description: name,
-			detail: `[${data}]`,
-		}
-	});
+    const results = response.data.results.map(({ number, data, name }) => {
+        const seqId = "A" + number.toString().padStart(6, '0');
+        return {
+            label: seqId,
+            description: name,
+            detail: `[${data}]`,
+        }
+    });
 
-	for (const result of response.data.results) {
-		const seqId = "A" + result.number.toString().padStart(6, '0');
-		context.workspaceState.update(seqId, result);
-	}
+    for (const result of response.data.results) {
+        const seqId = "A" + result.number.toString().padStart(6, '0');
+        context.workspaceState.update(seqId, result);
+    }
 
-	showResults(results, value, context);
+    showResults(results, value, context);
 }
 
 /**
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-	const oeisSearch = vscode.commands.registerCommand('oeis.search', function () {
-		vscode.window.showInputBox({
-			placeHolder: "1,1,2,3,5,8",
-		}).then(value => {
-			searchOeis(value, context);
-		});
-	});
+    const oeisSearch = vscode.commands.registerCommand('oeis.search', function () {
+        vscode.window.showInputBox({
+            placeHolder: "1,1,2,3,5,8",
+        }).then(value => {
+            searchOeis(value, context);
+        });
+    });
 
-	const oeisSearchSelected = vscode.commands.registerCommand('oeis.searchSelected', function () {
-		const editor = vscode.window.activeTextEditor;
-		if (!editor) return;
+    const oeisSearchSelected = vscode.commands.registerCommand('oeis.searchSelected', function () {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) return;
 
-		const selection = editor.selection;
-		if (!selection) return;
-		const value = editor.document.getText(selection);
-		searchOeis(value, context);
-	});
+        const selection = editor.selection;
+        if (!selection) return;
+        const value = editor.document.getText(selection);
+        searchOeis(value, context);
+    });
 
-	const linkProvider = vscode.window.registerTerminalLinkProvider({
-		provideTerminalLinks: (context, token) => {
-			// matches:
-			// "1,2,3,4"
-			// "1, 2, 3, 4"
-			// "[1,2,3,4]"
-			// "[1, 2, 3, 4]"
-			// 1, 2, 3...
-			const matchesSequence = /\[?(\d+, ?)+ ?\d+\]?/g;
-			const matches = [...context.line.matchAll(matchesSequence)];
+    const linkProvider = vscode.window.registerTerminalLinkProvider({
+        provideTerminalLinks: (context, token) => {
+            // matches:
+            // "1,2,3,4"
+            // "1, 2, 3, 4"
+            // "[1,2,3,4]"
+            // "[1, 2, 3, 4]"
+            // 1, 2, 3...
+            const matchesSequence = /\[?(\d+, ?)+ ?\d+\]?/g;
+            const matches = [...context.line.matchAll(matchesSequence)];
 
-			if (!matches) return [];
-			if (matches.length === 0) {
-				return [];
-			}
+            if (!matches) return [];
+            if (matches.length === 0) {
+                return [];
+            }
 
-			const links = matches.map(m => {
-				return {
-					length: m[0].length,
-					startIndex: m.index,
-					tooltip: 'Search Sequence',
-					data: m[0],
-				};
-			});
-			return links;
-		},
-		handleTerminalLink: (link) => {
-			searchOeis(link.data, context);
-		}
-	});
-
-	context.subscriptions.push(oeisSearch);
-	context.subscriptions.push(oeisSearchSelected);
-	context.subscriptions.push(linkProvider);
+            const links = matches.map(m => {
+                return {
+                    length: m[0].length,
+                    startIndex: m.index,
+                    tooltip: 'Search Sequence',
+                    data: m[0],
+                };
+            });
+            return links;
+        },
+        handleTerminalLink: (link) => {
+            searchOeis(link.data, context);
+        }
+    });
+    console.log("registering subscriptions");
+    context.subscriptions.push(
+        oeisSearch,
+        oeisSearchSelected,
+        linkProvider
+    );
 }
 
 function deactivate() { }
 
 module.exports = {
-	activate,
-	deactivate
+    activate,
+    deactivate
 }
