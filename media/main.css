@@ -1,0 +1,55 @@
+body {
+    padding-left: 30px;
+}
+
+hr {
+    height: 1px;
+    border-top: 1px solid;
+    border-bottom: 1px solid;
+    width: 100%;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 60%;
+}
+
+.data {
+    gap: 10px;
+    width: 95%;
+}
+
+.section {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    width: 90%;
+}
+
+.label {
+    font-weight: bold;
+    order: 1;
+    width: 10%;
+    border: 1px;
+}
+
+.description {
+    order: 2;
+    width: 90%;
+}
+
+div.seq {
+    margin-left: 16px;
+    text-align: start;
+    text-indent: -16px;
+    white-space-collapse: collapse;
+    text-wrap: wrap;
+}
+
+div.seq tt {
+    text-indent: -16px;
+    white-space-collapse: preserve;
+}

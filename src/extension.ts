@@ -1,9 +1,11 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { getSequenceProvider } from './sequence';
+import { getSequenceProvider, SequenceInfoTreeItem } from './sequence';
 import { OeisSearchLinkProvider, OeisSequenceLinkProvider } from "./terminal";
 import * as command from './command';
+import { SequenceViewManager } from './view';
+import { OeisSearchLensProvider } from './lens';
 
 
 // This method is called when your extension is activated
@@ -11,6 +13,13 @@ import * as command from './command';
 export function activate(context: vscode.ExtensionContext) {
 
     const sequenceProvider = getSequenceProvider();
+    const sequenceViewManager = new SequenceViewManager(sequenceProvider, context);
+
+    vscode.window.registerTreeDataProvider('oeis.cacheView', sequenceProvider);
+
+    const codelensProvider = new OeisSearchLensProvider();
+
+    vscode.languages.registerCodeLensProvider("*", codelensProvider);
 
     const searchCommand = vscode.commands.registerCommand(command.names.search, () => {
         command.search();
@@ -20,7 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (!searchText) {
             return;
         }
-        command.executeSearch(searchText, sequenceProvider);
+        command.executeSearch(searchText, sequenceProvider, context);
     });
 
     const searchSelectedTextCommand = vscode.commands.registerCommand(command.names.searchSelectedText, command.searchSelectedText);
@@ -29,11 +38,21 @@ export function activate(context: vscode.ExtensionContext) {
         if (!sequenceId) {
             return;
         }
-        command.showSequence(context, sequenceId, sequenceProvider);
+        sequenceViewManager.showSequence(sequenceId);
+    });
+
+    const deleteCachedItem = vscode.commands.registerCommand("oeis.deleteCachedItem", (item: SequenceInfoTreeItem) => {
+        sequenceProvider.deleteItem(item);
     });
 
     const searchLinkProvider = vscode.window.registerTerminalLinkProvider(new OeisSearchLinkProvider());
     const sequenceLinkProvider = vscode.window.registerTerminalLinkProvider(new OeisSequenceLinkProvider());
+
+    const toggleCodeLens = vscode.commands.registerCommand("oeis.toggleCodeLens", () => {
+        const enabled = vscode.workspace.getConfiguration("oeis").get("enableCodeLens", true);
+        console.log(`CodeLens enabled: ${enabled}`);
+        vscode.workspace.getConfiguration("oeis").update("enableCodeLens", !enabled, true);
+    });
 
     context.subscriptions.push(
         executeSearchCommand,

@@ -75,82 +75,10 @@ function displaySection(label: string, lines?: string | string[]) {
             </div>`;
 }
 
-function getCss(): string {
-    return `body {
-                padding-left: 30px;
-            }
-
-            hr {
-                height:1px;
-                border-top:1px solid;
-                border-bottom:1px solid;
-                width: 100%;
-            }
-
-            .content {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                width: 60%;
-            }
-
-            .data {
-                gap: 10px;
-                width: 95%;
-            }
-
-            .section {
-                display: flex;
-                flex-direction: row;
-                gap: 10px;
-                width: 90%;
-            }
-
-            .label {
-                font-weight: bold;
-                order: 1;
-                width: 10%;
-                border: 1px;
-            }
-
-            .description {
-                order: 2;
-                width: 90%;
-            }
-
-            div.seq {
-                margin-left: 16px;
-                text-align: start;
-                text-indent: -16px;
-                white-space-collapse: collapse;
-                text-wrap: wrap;
-            }
-
-            div.seq tt {
-                text-indent: -16px;
-                white-space-collapse: preserve;
-            }`;
-}
-
-function getScript(): string {
-    return `(function () {
-                const vscode = acquireVsCodeApi();
-                const links = document.getElementsByClassName("seq-link");
-
-                for (let i = 0; i < links.length; i += 1) {
-                    links[i].addEventListener("click", function (e) {
-                        e.preventDefault();
-                        vscode.postMessage(this.text);
-                    });
-                }
-            }());`;
-}
-
-export async function getHtml(sequenceId: string, sequenceProvider: SequenceProvider, resourceLocation: vscode.Uri) {
+export async function getHtml(webview: vscode.Webview, extensionUri: vscode.Uri, sequenceId: string, sequenceProvider: SequenceProvider, resourceLocation: vscode.Uri) {
     const sequenceInfo = await sequenceProvider.getSequence(sequenceId);
-    const links = getScript();
-    const css = getCss();
+    const script = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'script.js'));
+    const styleMainUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'main.css'));
     const sections = oeis.sections.map(([key, label]) => {
         const keyTyped = key as keyof typeof sequenceInfo;
         const lines = sequenceInfo[keyTyped];
@@ -163,8 +91,9 @@ export async function getHtml(sequenceId: string, sequenceProvider: SequenceProv
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
+                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src ${webview.cspSource};">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <style lang="css">${css}</style>
+                <link href="${styleMainUri}" rel="stylesheet">
                 <title>${sequenceId}</title>
             </head>
             <body>
@@ -177,7 +106,7 @@ export async function getHtml(sequenceId: string, sequenceProvider: SequenceProv
                     <hr />
                     ${sections.join("\n")}
                 </div>
-                <script>${links}</script>
+                <script src="${script}"></script>
             </body>
             </html>`;
 }

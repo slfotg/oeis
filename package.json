@@ -12,37 +12,40 @@
         "vscode": "^1.92.0"
     },
     "categories": [
-        "Other",
         "Education"
-    ],
-    "keywords": [
-        "OEIS",
-        "sequences",
-        "integer sequences",
-        "Sloane",
-        "search"
     ],
     "activationEvents": [
         "onStartupFinished"
     ],
     "main": "./out/extension.js",
     "contributes": {
+        "views": {
+            "explorer": [
+                {
+                    "id": "oeis.cacheView",
+                    "name": "Cached Sequences",
+                    "icon": "./resources/dark/number.svg"
+                }
+            ]
+        },
         "commands": [
             {
                 "command": "oeis.search",
                 "title": "OEIS: Search"
             },
             {
-                "command": "oeis.executeSearch",
-                "title": "OEIS: Do Search"
-            },
-            {
-                "command": "oeis.showSequence",
-                "title": "OEIS: Search Selected Text"
-            },
-            {
                 "command": "oeis.searchSelectedText",
                 "title": "OEIS: Search Selected Text"
+            },
+            {
+                "command": "oeis.toggleCodeLens",
+                "title": "OEIS: Toggle CodeLens"
+            },
+            {
+                "command": "oeis.deleteCachedItem",
+                "title": "Delete",
+                "group": "inline",
+                "icon": "$(notebook-delete-cell)"
             }
         ],
         "menus": {
@@ -50,14 +53,6 @@
                 {
                     "command": "oeis.searchSelectedText",
                     "when": "editorHasSelection"
-                },
-                {
-                    "command": "oeis.executeSearch",
-                    "when": "false"
-                },
-                {
-                    "command": "oeis.showSequence",
-                    "when": "false"
                 }
             ],
             "editor/context": [
@@ -66,7 +61,23 @@
                     "command": "oeis.searchSelectedText",
                     "group": "navigation"
                 }
+            ],
+            "view/item/context": [
+                {
+                    "command": "oeis.deleteCachedItem",
+                    "when": "view == oeis.cacheView",
+                    "group": "inline",
+                    "icon": "${notebook-delete-cell}"
+                }
             ]
+        },
+        "configuration": {
+            "properties": {
+                "oeis.enableCodeLens": {
+                    "type": "boolean",
+                    "default": true
+                }
+            }
         }
     },
     "scripts": {

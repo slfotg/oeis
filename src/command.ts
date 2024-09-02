@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { SequenceProvider, SequenceInfo } from './sequence';
 import { getHtml } from './html';
 
-const commandPrefix = "oeis";
+export const commandPrefix = "oeis";
 export const names = {
     search: `${commandPrefix}.search`,
     executeSearch: `${commandPrefix}.executeSearch`,
@@ -22,7 +22,7 @@ export async function search() {
 /**
  * Items to display in the search results.
  */
-interface SearchResults {
+interface SearchResults extends vscode.QuickPickItem {
     label: string,
     description: string,
     detail: string,
@@ -33,11 +33,15 @@ interface SearchResults {
  * @param sequenceInfo information about a single sequence
  * @returns a view item for the search results
  */
-function toSearchResults(sequenceInfo: SequenceInfo): SearchResults {
+function toSearchResults(sequenceInfo: SequenceInfo, context: vscode.ExtensionContext): SearchResults {
     return {
         label: sequenceInfo.sequenceId,
         description: sequenceInfo.name,
         detail: `[${sequenceInfo.data}]`,
+        iconPath: {
+            light: vscode.Uri.joinPath(context.extensionUri, "resources", "light", "number.svg"),
+            dark: vscode.Uri.joinPath(context.extensionUri, "resources", "dark", "number.svg"),
+        }
     } as SearchResults;
 }
 
@@ -47,8 +51,8 @@ function toSearchResults(sequenceInfo: SequenceInfo): SearchResults {
  * @param sequences array of sequence information returned by the search
  * @returns the selected sequence or undefined if none was selected
  */
-async function showSearchResults(searchText: string, sequences: SequenceInfo[]): Promise<(SearchResults | undefined)> {
-    return vscode.window.showQuickPick(sequences.map(toSearchResults), {
+async function showSearchResults(searchText: string, sequences: SequenceInfo[], context: vscode.ExtensionContext): Promise<(SearchResults | undefined)> {
+    return vscode.window.showQuickPick(sequences.map(info => toSearchResults(info, context)), {
         title: `Search results for ${searchText}`,
         ignoreFocusOut: true,
         matchOnDescription: true,
@@ -56,9 +60,9 @@ async function showSearchResults(searchText: string, sequences: SequenceInfo[]):
     });
 }
 
-export async function executeSearch(searchText: string, sequenceProvider: SequenceProvider) {
+export async function executeSearch(searchText: string, sequenceProvider: SequenceProvider, context: vscode.ExtensionContext) {
     const sequences = await sequenceProvider.search(searchText);
-    const item = await showSearchResults(searchText, sequences);
+    const item = await showSearchResults(searchText, sequences, context);
     vscode.commands.executeCommand(names.showSequence, item?.label);
 }
 
@@ -73,26 +77,26 @@ export function searchSelectedText() {
     vscode.commands.executeCommand(names.executeSearch, searchText);
 }
 
-export async function showSequence(context: vscode.ExtensionContext, sequenceId: string, sequenceProvider: SequenceProvider) {
-    const resourceLocation = context.extensionUri;
-    let panel = vscode.window.createWebviewPanel(
-        commandPrefix,
-        sequenceId,
-        vscode.ViewColumn.One,
-        {
-            enableScripts: true,
-            enableFindWidget: true,
-        }
-    );
-    const html = await getHtml(sequenceId, sequenceProvider, resourceLocation);
-    panel.webview.html = html;
+// export async function showSequence(context: vscode.ExtensionContext, sequenceId: string, sequenceProvider: SequenceProvider) {
+//     const resourceLocation = context.extensionUri;
+//     let panel = vscode.window.createWebviewPanel(
+//         commandPrefix,
+//         sequenceId,
+//         vscode.ViewColumn.One,
+//         {
+//             enableScripts: true,
+//             enableFindWidget: true,
+//         }
+//     );
+//     const html = await getHtml(panel.webview, context.extensionUri, sequenceId, sequenceProvider, resourceLocation);
+//     panel.webview.html = html;
 
-    // handle when sequences are clicked in the current webview
-    panel.webview.onDidReceiveMessage(
-        message => {
-            vscode.commands.executeCommand(names.showSequence, message);
-        },
-        undefined,
-        context.subscriptions
-    );
-}
+//     // handle when sequences are clicked in the current webview
+//     panel.webview.onDidReceiveMessage(
+//         message => {
+//             vscode.commands.executeCommand(names.showSequence, message);
+//         },
+//         undefined,
+//         context.subscriptions
+//     );
+// }
