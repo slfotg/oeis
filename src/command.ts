@@ -1,31 +1,34 @@
-import * as vscode from 'vscode';
-import { SequenceProvider, SequenceInfo } from './sequence';
-import { getHtml } from './html';
+import * as vscode from "vscode";
+import { getHtml } from "./html";
+import { SequenceInfo, SequenceProvider } from "./sequence";
 
 const commandPrefix = "oeis";
 export const names = {
     search: `${commandPrefix}.search`,
     executeSearch: `${commandPrefix}.executeSearch`,
     showSequence: `${commandPrefix}.showSequence`,
-    searchSelectedText: `${commandPrefix}.searchSelectedText`
+    searchSelectedText: `${commandPrefix}.searchSelectedText`,
 };
 
 /**
  * Opens input box to search for a sequence.
  */
 export async function search() {
-    vscode.commands.executeCommand(names.executeSearch, await vscode.window.showInputBox({
-        placeHolder: "2,1,3,4,7,11",
-    }));
+    vscode.commands.executeCommand(
+        names.executeSearch,
+        await vscode.window.showInputBox({
+            placeHolder: "2,1,3,4,7,11",
+        }),
+    );
 }
 
 /**
  * Items to display in the search results.
  */
-interface SearchResults {
-    label: string,
-    description: string,
-    detail: string,
+interface SearchResults extends vscode.QuickPickItem {
+    label: string;
+    description: string;
+    detail: string;
 }
 
 /**
@@ -47,7 +50,10 @@ function toSearchResults(sequenceInfo: SequenceInfo): SearchResults {
  * @param sequences array of sequence information returned by the search
  * @returns the selected sequence or undefined if none was selected
  */
-async function showSearchResults(searchText: string, sequences: SequenceInfo[]): Promise<(SearchResults | undefined)> {
+async function showSearchResults(
+    searchText: string,
+    sequences: SequenceInfo[],
+): Promise<SearchResults | undefined> {
     return vscode.window.showQuickPick(sequences.map(toSearchResults), {
         title: `Search results for ${searchText}`,
         ignoreFocusOut: true,
@@ -56,7 +62,10 @@ async function showSearchResults(searchText: string, sequences: SequenceInfo[]):
     });
 }
 
-export async function executeSearch(searchText: string, sequenceProvider: SequenceProvider) {
+export async function executeSearch(
+    searchText: string,
+    sequenceProvider: SequenceProvider,
+) {
     const sequences = await sequenceProvider.search(searchText);
     const item = await showSearchResults(searchText, sequences);
     vscode.commands.executeCommand(names.showSequence, item?.label);
@@ -64,16 +73,22 @@ export async function executeSearch(searchText: string, sequenceProvider: Sequen
 
 /**
  * Searches for the selected text in the active editor.
- * 
+ *
  * This function is called when the user selects text in the editor and then
  * runs the "Search Selected Text" command from the context menu.
  */
 export function searchSelectedText() {
-    const searchText = vscode.window.activeTextEditor?.document.getText(vscode.window.activeTextEditor?.selection);
+    const searchText = vscode.window.activeTextEditor?.document.getText(
+        vscode.window.activeTextEditor?.selection,
+    );
     vscode.commands.executeCommand(names.executeSearch, searchText);
 }
 
-export async function showSequence(context: vscode.ExtensionContext, sequenceId: string, sequenceProvider: SequenceProvider) {
+export async function showSequence(
+    context: vscode.ExtensionContext,
+    sequenceId: string,
+    sequenceProvider: SequenceProvider,
+) {
     const resourceLocation = context.extensionUri;
     let panel = vscode.window.createWebviewPanel(
         commandPrefix,
@@ -82,17 +97,24 @@ export async function showSequence(context: vscode.ExtensionContext, sequenceId:
         {
             enableScripts: true,
             enableFindWidget: true,
-        }
+        },
     );
-    const html = await getHtml(sequenceId, sequenceProvider, resourceLocation);
+    const html = await getHtml(
+        panel.webview,
+        context.extensionUri,
+        sequenceId,
+        sequenceProvider,
+        resourceLocation,
+    );
+    console.log(html);
     panel.webview.html = html;
 
     // handle when sequences are clicked in the current webview
     panel.webview.onDidReceiveMessage(
-        message => {
+        (message) => {
             vscode.commands.executeCommand(names.showSequence, message);
         },
         undefined,
-        context.subscriptions
+        context.subscriptions,
     );
 }

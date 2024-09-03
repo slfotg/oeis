@@ -1,36 +1,35 @@
+import axios from "axios";
 
-import axios from 'axios';
-
-type stringType = (string | string[]);
+type stringType = string | string[];
 
 /**
  * Raw response data from the OEIS API.
- * 
+ *
  * Some fields are omitted for brevity.
  */
 export interface ResponseInfo {
-    number: number,
-    name: string,
-    data: string,
-    offset?: string,
-    comment?: stringType,
-    references?: stringType,
-    link?: stringType,
-    formula?: stringType,
-    example?: stringType,
-    maple?: stringType,
-    mathematica?: stringType,
-    program?: stringType,
-    xref?: stringType,
-    keyword?: stringType,
-    author?: stringType,
+    number: number;
+    name: string;
+    data: string;
+    offset?: string;
+    comment?: stringType;
+    references?: stringType;
+    link?: stringType;
+    formula?: stringType;
+    example?: stringType;
+    maple?: stringType;
+    mathematica?: stringType;
+    program?: stringType;
+    xref?: stringType;
+    keyword?: stringType;
+    author?: stringType;
 }
 
 /**
  * Extended sequence information with the sequence ID.
  */
 export interface SequenceInfo extends ResponseInfo {
-    sequenceId: string
+    sequenceId: string;
 }
 
 /**
@@ -39,7 +38,10 @@ export interface SequenceInfo extends ResponseInfo {
  * @returns the sequence info with a sequence ID
  */
 function fromResponse(response: ResponseInfo): SequenceInfo {
-    return { ...response, sequenceId: "A" + response.number.toString().padStart(6, '0') } as SequenceInfo;
+    return {
+        ...response,
+        sequenceId: "A" + response.number.toString().padStart(6, "0"),
+    } as SequenceInfo;
 }
 
 /**
@@ -60,16 +62,16 @@ export interface SequenceProvider {
     getSequence(sequenceId: string): Promise<SequenceInfo>;
 }
 
-
 /**
  * A sequence provider that caches the results of previous searches.
  */
 class CachedSequenceProvider implements SequenceProvider {
-
     cache: Map<string, SequenceInfo> = new Map<string, SequenceInfo>();
 
     async search(text: string): Promise<SequenceInfo[]> {
-        const info = await axios.get("https://oeis.org/search", { params: { q: text, fmt: "json" } });
+        const info = await axios.get("https://oeis.org/search", {
+            params: { q: text, fmt: "json" },
+        });
         const results = info.data.results as ResponseInfo[];
         const data: SequenceInfo[] = results.map(fromResponse);
         for (const seq of data) {

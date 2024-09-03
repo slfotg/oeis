@@ -1,12 +1,15 @@
-import * as vscode from 'vscode';
-import * as command from './command';
+import * as vscode from "vscode";
+import * as command from "./command";
 
 interface OeisTerminalLink extends vscode.TerminalLink {
-    data: string,
+    data: string;
 }
 
 export class OeisSearchLinkProvider implements vscode.TerminalLinkProvider {
-    provideTerminalLinks(context: vscode.TerminalLinkContext, token: vscode.CancellationToken): vscode.ProviderResult<OeisTerminalLink[]> {
+    provideTerminalLinks(
+        context: vscode.TerminalLinkContext,
+        token: vscode.CancellationToken,
+    ): vscode.ProviderResult<OeisTerminalLink[]> {
         // matches:
         // "1,2,3,4"
         // "1, 2, 3, 4"
@@ -20,7 +23,7 @@ export class OeisSearchLinkProvider implements vscode.TerminalLinkProvider {
             return [];
         }
 
-        const links = matches.map(m => {
+        const links = matches.map((m) => {
             return {
                 length: m[0].length,
                 startIndex: m.index,
@@ -37,7 +40,10 @@ export class OeisSearchLinkProvider implements vscode.TerminalLinkProvider {
 }
 
 export class OeisSequenceLinkProvider implements vscode.TerminalLinkProvider {
-    provideTerminalLinks(context: vscode.TerminalLinkContext, token: vscode.CancellationToken): vscode.ProviderResult<OeisTerminalLink[]> {
+    provideTerminalLinks(
+        context: vscode.TerminalLinkContext,
+        token: vscode.CancellationToken,
+    ): vscode.ProviderResult<OeisTerminalLink[]> {
         const matchesSequence = /A\d{6}/g;
         const matches = [...context.line.matchAll(matchesSequence)];
 
@@ -45,7 +51,7 @@ export class OeisSequenceLinkProvider implements vscode.TerminalLinkProvider {
             return [];
         }
 
-        const links = matches.map(m => {
+        const links = matches.map((m) => {
             return {
                 length: m[0].length,
                 startIndex: m.index,
