@@ -1,6 +1,7 @@
 # OEIS
 
-Allows basic searching of [OEIS](oeis.org) from VSCode
+Allows basic searching of [OEIS](oeis.org) from VSCode.
+Content is available under [The OEIS End-User License Agreement](http://oeis.org/LICENSE)
 
 ## Features
 
@@ -39,5 +40,3 @@ Hit Ctrl+Shift+P to open command palette and search for "OEIS".
 After selecting the "OEIS: Sequence Search" command, just type any sequence like you would on the oeis website.
 
 If any sequences are found, they will be displayed in a drop down with basic information. When you select one of those items, its description will open in a new window.
-
-I recommend creating a key binding for the command. I'm currently using Ctrl+Alt+S.

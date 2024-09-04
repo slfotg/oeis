@@ -132,6 +132,8 @@ export async function getHtml(
                     }/${sequenceId}">${sequenceId}</a> - ${
         sequenceInfo.name
     }</pre></h2>
+                    <div>Content is available under <a href="http://oeis.org/LICENSE">The OEIS End-User License Agreement</a></div>
+                    <br />
                     <hr />
                     <div class="data">
                         <pre>${splitData(sequenceInfo.data)}</pre>
