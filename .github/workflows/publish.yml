@@ -14,7 +14,9 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      - run: npx semantic-release
+      - uses: lannonbr/vsce-action@4.0.0
+        with:
+          args: "publish -p $VSCE_TOKEN"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VSCE_PAT: ${{ secrets.VSCODE_PAT }}
