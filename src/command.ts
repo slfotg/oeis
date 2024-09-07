@@ -106,7 +106,6 @@ export async function showSequence(
         sequenceProvider,
         resourceLocation,
     );
-    console.log(html);
     panel.webview.html = html;
 
     // handle when sequences are clicked in the current webview
