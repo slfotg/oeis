@@ -18,5 +18,4 @@ jobs:
         with:
           args: "publish -p $VSCE_TOKEN"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VSCE_PAT: ${{ secrets.VSCODE_PAT }}
+          VSCE_TOKEN: ${{ secrets.VSCODE_PAT }}
