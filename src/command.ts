@@ -97,6 +97,7 @@ export async function showSequence(
         {
             enableScripts: true,
             enableFindWidget: true,
+            retainContextWhenHidden: true,
         },
     );
     const html = await getHtml(

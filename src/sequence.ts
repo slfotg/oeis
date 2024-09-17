@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Memento } from "vscode";
 
 type stringType = string | string[];
 
@@ -66,10 +67,11 @@ export interface SequenceProvider {
  * A sequence provider that caches the results of previous searches.
  */
 class CachedSequenceProvider implements SequenceProvider {
-    private cache: Map<string, SequenceInfo> = new Map<string, SequenceInfo>();
+    private cache: Memento = {} as Memento;
     private searchUrl: string = "https://oeis.org/search";
 
-    constructor(searchUrl?: string) {
+    constructor(state: Memento, searchUrl?: string) {
+        this.cache = state;
         if (searchUrl) {
             this.searchUrl = searchUrl;
         }
@@ -82,16 +84,16 @@ class CachedSequenceProvider implements SequenceProvider {
         const results = info.data.results as ResponseInfo[];
         const data: SequenceInfo[] = results.map(fromResponse);
         for (const seq of data) {
-            this.cache.set(seq.sequenceId, { ...seq });
+            this.cache.update(seq.sequenceId, { ...seq });
         }
         return data;
     }
 
     async getSequence(sequenceId: string): Promise<SequenceInfo> {
-        if (!this.cache.has(sequenceId)) {
+        if (!this.cache.get(sequenceId)) {
             await this.search(`id:${sequenceId}`);
         }
-        if (this.cache.has(sequenceId)) {
+        if (this.cache.get(sequenceId)) {
             return this.cache.get(sequenceId) as SequenceInfo;
         } else {
             throw Error(`Sequence ${sequenceId} not found`);
@@ -103,6 +105,6 @@ class CachedSequenceProvider implements SequenceProvider {
  * Gets the default sequence provider.
  * @returns a new sequence provider
  */
-export function getSequenceProvider(): SequenceProvider {
-    return new CachedSequenceProvider();
+export function getSequenceProvider(state: Memento): SequenceProvider {
+    return new CachedSequenceProvider(state);
 }
