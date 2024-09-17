@@ -66,10 +66,17 @@ export interface SequenceProvider {
  * A sequence provider that caches the results of previous searches.
  */
 class CachedSequenceProvider implements SequenceProvider {
-    cache: Map<string, SequenceInfo> = new Map<string, SequenceInfo>();
+    private cache: Map<string, SequenceInfo> = new Map<string, SequenceInfo>();
+    private searchUrl: string = "https://oeis.org/search";
+
+    constructor(searchUrl?: string) {
+        if (searchUrl) {
+            this.searchUrl = searchUrl;
+        }
+    }
 
     async search(text: string): Promise<SequenceInfo[]> {
-        const info = await axios.get("https://oeis.org/search", {
+        const info = await axios.get(this.searchUrl, {
             params: { q: text, fmt: "json" },
         });
         const results = info.data.results as ResponseInfo[];
