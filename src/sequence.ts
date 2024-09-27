@@ -81,7 +81,7 @@ class CachedSequenceProvider implements SequenceProvider {
         const info = await axios.get(this.searchUrl, {
             params: { q: text, fmt: "json" },
         });
-        const results = info.data.results as ResponseInfo[];
+        const results = info.data as ResponseInfo[];
         const data: SequenceInfo[] = results.map(fromResponse);
         for (const seq of data) {
             this.cache.update(seq.sequenceId, { ...seq });
