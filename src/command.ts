@@ -67,8 +67,14 @@ export async function executeSearch(
     sequenceProvider: SequenceProvider,
 ) {
     const sequences = await sequenceProvider.search(searchText);
-    const item = await showSearchResults(searchText, sequences);
-    vscode.commands.executeCommand(names.showSequence, item?.label);
+    if (sequences.length > 0) {
+        const item = await showSearchResults(searchText, sequences);
+        vscode.commands.executeCommand(names.showSequence, item?.label);
+    } else {
+        vscode.window.showWarningMessage(
+            `No sequences found for ${searchText}.`,
+        );
+    }
 }
 
 /**
