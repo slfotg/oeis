@@ -103,9 +103,20 @@ export async function getHtml(
     const script = webview.asWebviewUri(
         vscode.Uri.joinPath(extensionUri, "media", "script.js"),
     );
+    const bundle = webview.asWebviewUri(
+        vscode.Uri.joinPath(
+            extensionUri,
+            "node_modules",
+            "@vscode-elements",
+            "elements",
+            "dist",
+            "bundled.js",
+        ),
+    );
     const styleMainUri = webview.asWebviewUri(
         vscode.Uri.joinPath(extensionUri, "media", "main.css"),
     );
+    const nonce = getNonce();
     const sections = oeis.sections.map(([key, label]) => {
         const keyTyped = key as keyof typeof sequenceInfo;
         const lines = sequenceInfo[keyTyped];
@@ -119,9 +130,12 @@ export async function getHtml(
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                
                 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${
                     webview.cspSource
-                }; script-src ${webview.cspSource};">
+                }; img-src ${
+        webview.cspSource
+    } https:; script-src 'nonce-${nonce}' ${webview.cspSource};">
                 <link href="${styleMainUri}" rel="stylesheet">
                 <title>${sequenceId}</title>
             </head>
@@ -132,6 +146,8 @@ export async function getHtml(
                     }/${sequenceId}">${sequenceId}</a> - ${
         sequenceInfo.name
     }</pre></h2>
+
+<vscode-badge>308 Settings Found</vscode-badge>
                     <div>Content is available under <a href="http://oeis.org/LICENSE">The OEIS End-User License Agreement</a></div>
                     <br />
                     <hr />
@@ -141,7 +157,22 @@ export async function getHtml(
                     <hr />
                     ${sections.join("\n")}
                 </div>
-                <script src="${script}"></script>
+                <script nonce="${nonce}" src="${script}"></script>
+                <script
+                    nonce="${nonce}"
+                    src="${bundle}"
+                    type="module"
+                ></script>
             </body>
             </html>`;
+}
+
+function getNonce() {
+    let text = "";
+    const possible =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (let i = 0; i < 32; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
 }

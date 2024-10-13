@@ -1,12 +1,16 @@
 import * as vscode from "vscode";
 import * as command from "./command";
+import { OeisViewProvider } from "./panel";
 import { getSequenceProvider } from "./sequence";
 import { OeisSearchLinkProvider, OeisSequenceLinkProvider } from "./terminal";
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
     const sequenceProvider = getSequenceProvider(context.workspaceState);
+
+    const panel = vscode.window.registerWebviewViewProvider(
+        OeisViewProvider.viewType,
+        new OeisViewProvider(context.extensionUri),
+    );
 
     const searchCommand = vscode.commands.registerCommand(
         command.names.search,
@@ -48,6 +52,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     context.subscriptions.push(
+        panel,
         executeSearchCommand,
         searchCommand,
         searchSelectedTextCommand,
