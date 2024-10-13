@@ -1,8 +1,6 @@
 export enum Command {
     Search = "oeis.search",
-    ExecuteSearch = "oeis.executeSearch",
     SearchSelectedText = "oeis.searchSelectedText",
-    ShowSequence = "oeis.showSequence",
 }
 
 export enum ViewType {

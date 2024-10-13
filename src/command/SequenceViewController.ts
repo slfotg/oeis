@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { Command, ViewType } from "../config";
-import { SequenceProvider } from "../sequence/SequenceProvider";
+import { ViewType } from "../config";
+import { SequenceProvider } from "../sequence";
 import { SequenceView } from "../view/SequenceView";
 
 export class SequenceViewController {
@@ -63,7 +63,7 @@ export class SequenceViewController {
         // handle when sequences are clicked in the current webview
         panel.webview.onDidReceiveMessage(
             (message) => {
-                vscode.commands.executeCommand(Command.ShowSequence, message);
+                this.showSequence(message);
             },
             undefined,
             this.context.subscriptions,

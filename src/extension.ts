@@ -1,35 +1,29 @@
 import * as vscode from "vscode";
-import { SearchController } from "./command/SearchController";
-import { SequenceViewController } from "./command/SequenceViewController";
+import { SearchController, SequenceViewController } from "./command";
 import { Command } from "./config";
-import { getSequenceProvider } from "./sequence/SequenceProvider";
+import { getSequenceProvider } from "./sequence";
 import {
-    OeisSearchLinkProvider,
-    OeisSequenceLinkProvider,
-} from "./terminal/OeisTerminalLinkProvider";
+    TerminalSearchLinkProvider,
+    TerminalSequenceLinkProvider,
+} from "./terminal";
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
     const sequenceProvider = getSequenceProvider(context.workspaceState);
-    const searchController = new SearchController(sequenceProvider);
     const sequenceViewController = new SequenceViewController(
         sequenceProvider,
         context,
+    );
+    const searchController = new SearchController(
+        sequenceProvider,
+        sequenceViewController,
     );
 
     context.subscriptions.push(
         vscode.commands.registerCommand(
             Command.Search,
             searchController.search,
-            searchController,
-        ),
-    );
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            Command.ExecuteSearch,
-            searchController.executeSearch,
             searchController,
         ),
     );
@@ -43,21 +37,13 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand(
-            Command.ShowSequence,
-            sequenceViewController.showSequence,
-            sequenceViewController,
-        ),
-    );
-
-    context.subscriptions.push(
         vscode.window.registerTerminalLinkProvider(
-            new OeisSearchLinkProvider(),
+            new TerminalSearchLinkProvider(searchController),
         ),
     );
     context.subscriptions.push(
         vscode.window.registerTerminalLinkProvider(
-            new OeisSequenceLinkProvider(),
+            new TerminalSequenceLinkProvider(sequenceViewController),
         ),
     );
 }

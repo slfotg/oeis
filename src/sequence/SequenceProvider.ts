@@ -8,7 +8,7 @@ type stringType = string | string[];
  *
  * Some fields are omitted for brevity.
  */
-export interface ResponseInfo {
+interface ResponseInfo {
     number: number;
     name: string;
     data: string;

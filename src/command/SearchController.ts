@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { Command } from "../config";
-import { SequenceInfo, SequenceProvider } from "../sequence/SequenceProvider";
+import { SequenceViewController } from ".";
+import { SequenceInfo, SequenceProvider } from "../sequence";
 
 /**
  * Items to display in the search results.
@@ -13,9 +13,14 @@ interface SearchResults extends vscode.QuickPickItem {
 
 export class SearchController {
     private sequenceProvider: SequenceProvider;
+    private sequenceViewController: SequenceViewController;
 
-    constructor(sequenceProvider: SequenceProvider) {
+    constructor(
+        sequenceProvider: SequenceProvider,
+        sequenceViewController: SequenceViewController,
+    ) {
         this.sequenceProvider = sequenceProvider;
+        this.sequenceViewController = sequenceViewController;
     }
     /**
      * Opens input box to search for a sequence.
@@ -25,12 +30,7 @@ export class SearchController {
             .showInputBox({
                 placeHolder: "2,1,3,4,7,11",
             })
-            .then((searchText) => {
-                vscode.commands.executeCommand(
-                    Command.ExecuteSearch,
-                    searchText,
-                );
-            });
+            .then(this.executeSearch);
     }
 
     executeSearch(searchText?: string) {
@@ -50,7 +50,7 @@ export class SearchController {
         const searchText = vscode.window.activeTextEditor?.document.getText(
             vscode.window.activeTextEditor?.selection,
         );
-        vscode.commands.executeCommand(Command.ExecuteSearch, searchText);
+        this.executeSearch(searchText);
     }
 
     /**
@@ -91,7 +91,7 @@ export class SearchController {
         const sequences = await this.sequenceProvider.search(searchText);
         if (sequences.length > 0) {
             const item = await this.showSearchResults(searchText, sequences);
-            vscode.commands.executeCommand(Command.ShowSequence, item?.label);
+            this.sequenceViewController.showSequence(item?.label);
         } else {
             vscode.window.showWarningMessage(
                 `No sequences found for ${searchText}.`,
