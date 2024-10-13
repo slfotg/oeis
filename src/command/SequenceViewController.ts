@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { ViewType } from "../config";
 import { SequenceProvider } from "../sequence";
-import { SequenceView } from "../view/SequenceView";
+import { SequenceView } from "../view";
 
 export class SequenceViewController {
     private visibleSequences: { [key: string]: vscode.WebviewPanel } = {};

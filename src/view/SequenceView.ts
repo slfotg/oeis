@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import * as config from "../config";
-import { SequenceProvider } from "../sequence/SequenceProvider";
+import { SequenceProvider } from "../sequence";
 
 export class SequenceView {
     private webview: vscode.Webview;

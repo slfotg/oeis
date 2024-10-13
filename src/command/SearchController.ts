@@ -30,7 +30,9 @@ export class SearchController {
             .showInputBox({
                 placeHolder: "2,1,3,4,7,11",
             })
-            .then(this.executeSearch);
+            .then((searchText) => {
+                this.executeSearch(searchText);
+            });
     }
 
     executeSearch(searchText?: string) {
