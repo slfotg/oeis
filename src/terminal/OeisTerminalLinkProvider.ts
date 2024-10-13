@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import * as command from "./command";
+import { Command } from "../config";
 
 interface OeisTerminalLink extends vscode.TerminalLink {
     data: string;
@@ -16,7 +16,7 @@ export class OeisSearchLinkProvider implements vscode.TerminalLinkProvider {
         // "[1,2,3,4]"
         // "[1, 2, 3, 4]"
         // 1, 2, 3...
-        const matchesSequence = /\[?(\d+, ?)+ ?\d+\]?/g;
+        const matchesSequence = /\[?(-?\d+, ?)+ ?\d+\]?/g;
         const matches = [...context.line.matchAll(matchesSequence)];
 
         if (!matches) {
@@ -35,7 +35,7 @@ export class OeisSearchLinkProvider implements vscode.TerminalLinkProvider {
     }
 
     handleTerminalLink(link: OeisTerminalLink): vscode.ProviderResult<void> {
-        vscode.commands.executeCommand(command.names.executeSearch, link.data);
+        vscode.commands.executeCommand(Command.ExecuteSearch, link.data);
     }
 }
 
@@ -63,6 +63,6 @@ export class OeisSequenceLinkProvider implements vscode.TerminalLinkProvider {
     }
 
     handleTerminalLink(link: OeisTerminalLink): vscode.ProviderResult<void> {
-        vscode.commands.executeCommand(command.names.showSequence, link.data);
+        vscode.commands.executeCommand(Command.ShowSequence, link.data);
     }
 }
