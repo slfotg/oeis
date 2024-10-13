@@ -81,19 +81,44 @@ export class SequenceView {
             .join("\n");
     }
 
+    private _displayKeywordSection(line: string) {
+        const description = line.split(",").map((word) => {
+            const keyword = word as config.Keyword;
+            const title = config.keywordDescriptions[keyword];
+            if (title) {
+                return `<abbr title="${title}">${word}</abbr>`;
+            } else {
+                return `${word}`;
+            }
+        });
+        return `<br />
+                <div class="section">
+                    <div class="label">
+                        <pre>${config.sections.keyword}</pre>
+                    </div>
+                    <div class="description">
+                        ${description.join(", ")}
+                    </div>
+                </div>`;
+    }
+
     private _displaySection(label: string, lines?: string | string[]) {
         if (!lines) {
             return "";
         }
-        return `<br />
-            <div class="section">
-                <div class="label">
-                    <pre>${label}</pre>
-                </div>
-                <div class="description">
-                    ${this._splitLines(lines)}
-                </div>
-            </div>`;
+        if (label === config.sections.keyword) {
+            return this._displayKeywordSection(lines as string);
+        } else {
+            return `<br />
+                <div class="section">
+                    <div class="label">
+                        <pre>${label}</pre>
+                    </div>
+                    <div class="description">
+                        ${this._splitLines(lines)}
+                    </div>
+                </div>`;
+        }
     }
 
     async getHtml() {
