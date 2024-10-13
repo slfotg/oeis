@@ -16,7 +16,7 @@ export class OeisSearchLinkProvider implements vscode.TerminalLinkProvider {
         // "[1,2,3,4]"
         // "[1, 2, 3, 4]"
         // 1, 2, 3...
-        const matchesSequence = /\[?(-?\d+, ?)+ ?\d+\]?/g;
+        const matchesSequence = /\[?(-?\d+, ?)+ ?-?\d+\]?/g;
         const matches = [...context.line.matchAll(matchesSequence)];
 
         if (!matches) {
