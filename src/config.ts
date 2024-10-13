@@ -1,6 +1,8 @@
 export enum Command {
     Search = "oeis.search",
     SearchSelectedText = "oeis.searchSelectedText",
+    ShowSequence = "oeis.showSequence",
+    ToggleCodeLens = "oeis.toggleCodeLens",
 }
 
 export enum ViewType {

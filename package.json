@@ -27,6 +27,15 @@
     ],
     "main": "./dist/extension.js",
     "contributes": {
+        "configuration": {
+            "properties": {
+                "oeis.enableCodeLens": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable editor links for OEIS sequences"
+                }
+            }
+        },
         "commands": [
             {
                 "command": "oeis.search",
@@ -35,6 +44,10 @@
             {
                 "command": "oeis.searchSelectedText",
                 "title": "OEIS: Search Selected Text"
+            },
+            {
+                "command": "oeis.toggleCodeLens",
+                "title": "OEIS: Toggle CodeLens"
             }
         ],
         "menus": {
@@ -48,6 +61,10 @@
                 {
                     "when": "editorHasSelection",
                     "command": "oeis.searchSelectedText",
+                    "group": "navigation"
+                },
+                {
+                    "command": "oeis.toggleCodeLens",
                     "group": "navigation"
                 }
             ]

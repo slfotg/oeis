@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { SearchController, SequenceViewController } from "./command";
 import { Command } from "./config";
+import { SequenceLensProvider } from "./lens";
 import { getSequenceProvider } from "./sequence";
 import {
     TerminalSearchLinkProvider,
@@ -19,6 +20,9 @@ export function activate(context: vscode.ExtensionContext) {
         sequenceProvider,
         sequenceViewController,
     );
+    const sequenceLensProvider = new SequenceLensProvider();
+
+    vscode.languages.registerCodeLensProvider("*", sequenceLensProvider);
 
     context.subscriptions.push(
         vscode.commands.registerCommand(
@@ -33,6 +37,22 @@ export function activate(context: vscode.ExtensionContext) {
             Command.SearchSelectedText,
             searchController.searchSelectedText,
             searchController,
+        ),
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            Command.ShowSequence,
+            sequenceViewController.showSequence,
+            sequenceViewController,
+        ),
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            Command.ToggleCodeLens,
+            sequenceLensProvider.toggleCodeLens,
+            sequenceLensProvider,
         ),
     );
 
