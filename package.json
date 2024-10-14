@@ -22,6 +22,7 @@
         "Sloane",
         "search"
     ],
+    "icon": "images/oeis_logo.png",
     "activationEvents": [
         "onStartupFinished"
     ],
