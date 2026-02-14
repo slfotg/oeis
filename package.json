@@ -3,7 +3,7 @@
     "displayName": "oeis",
     "publisher": "slfotg",
     "description": "Search The On-Line Encyclopedia of Integer Sequences® (OEIS®) from your workspace",
-    "version": "0.3.1",
+    "version": "0.4.0",
     "repository": {
         "type": "git",
         "url": "https://github.com/slfotg/oeis"
@@ -95,9 +95,5 @@
         "typescript": "^5.4.5",
         "webpack": "^5.92.1",
         "webpack-cli": "^5.1.4"
-    },
-    "dependencies": {
-        "axios": "^1.7.5",
-        "lit": "^3.2.0"
     }
 }

@@ -1,4 +1,3 @@
-import axios from "axios";
 import { Memento } from "vscode";
 
 type stringType = string | string[];
@@ -78,11 +77,19 @@ class CachedSequenceProvider implements SequenceProvider {
     }
 
     async search(text: string): Promise<SequenceInfo[]> {
-        const info = await axios.get(this.searchUrl, {
-            params: { q: text, fmt: "json" },
+        const params = new URLSearchParams({
+            q: text,
+            fmt: "json",
         });
-        if (info.data) {
-            const results = info.data as ResponseInfo[];
+        const response = await fetch(`${this.searchUrl}?${params}`, {
+            method: "GET",
+            headers: {
+                "User-Agent": "slfotg.oeis/0.4.0 (slfotg@gmail.com)",
+            },
+        });
+        const info = await response.json();
+        if (info) {
+            const results = info as ResponseInfo[];
             const data: SequenceInfo[] = results.map(fromResponse);
             for (const seq of data) {
                 this.cache.update(seq.sequenceId, { ...seq });

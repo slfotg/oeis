@@ -18,7 +18,7 @@ export class SequenceViewController {
 
     public registerSequenceView(sequenceId: string, view: vscode.WebviewPanel) {
         this.visibleSequences[sequenceId] = view;
-
+        view.iconPath = vscode.Uri.parse("https://oeis.org/favicon.ico");
         view.onDidDispose(() => {
             delete this.visibleSequences[sequenceId];
         });
@@ -56,6 +56,7 @@ export class SequenceViewController {
             {
                 enableScripts: true,
                 enableFindWidget: true,
+                retainContextWhenHidden: true,
             },
         );
         this.registerSequenceView(sequenceId, panel);
