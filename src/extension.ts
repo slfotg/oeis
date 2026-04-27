@@ -8,8 +8,6 @@ import {
     TerminalSequenceLinkProvider,
 } from "./terminal";
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
     const sequenceProvider = getSequenceProvider(context.workspaceState);
     const sequenceViewController = new SequenceViewController(

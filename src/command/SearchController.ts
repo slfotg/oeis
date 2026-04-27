@@ -25,21 +25,18 @@ export class SearchController {
     /**
      * Opens input box to search for a sequence.
      */
-    search() {
-        vscode.window
-            .showInputBox({
-                placeHolder: "2,1,3,4,7,11",
-            })
-            .then((searchText) => {
-                this.executeSearch(searchText);
-            });
+    async search() {
+        const searchText = await vscode.window.showInputBox({
+            placeHolder: "2,1,3,4,7,11",
+        });
+        await this.executeSearch(searchText);
     }
 
-    executeSearch(searchText?: string) {
+    async executeSearch(searchText?: string) {
         if (!searchText) {
             return;
         }
-        this._executeSearch(searchText);
+        await this._executeSearch(searchText);
     }
 
     /**

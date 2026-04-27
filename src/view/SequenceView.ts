@@ -42,31 +42,44 @@ export class SequenceView {
      * @returns
      */
     private _addLinks(line: string) {
-        // TODO - This needs to be revisited. The current implementation is very hacky.
-        return line
-            .replaceAll(
-                /\<a([^\>]+)\>(.+?)\<\/a\>/g,
-                (_a, b: string, c: string) =>
-                    `---- ${b.split("").reverse().join("")} * ${c
-                        .split("")
-                        .reverse()
-                        .join("")} ----`,
-            )
-            .replaceAll(/\</g, "&lt;")
-            .replaceAll(/\>/g, "&gt;")
-            .replaceAll(/(A\d{6})/g, `<a href="#$1" class="seq-link">$1</a>`)
-            .replaceAll(
-                /_([a-zA-Z\. ]{3,30})_/g,
-                `<a href="${config.wikiURL}/User:$1">$1</a>`,
-            )
-            .replaceAll(
-                /---- (.+) \* (.+?) ----/g,
-                (_a, b: string, c: string) =>
-                    `<a ${b.split("").reverse().join("")}>${c
-                        .split("")
-                        .reverse()
-                        .join("")}</a>`,
+        const existingLinks: string[] = [];
+        let placeholder = 0;
+
+        // Extract and replace existing <a> tags with placeholders
+        let result = line.replace(
+            /<a[^>]*>.*?<\/a>/g,
+            (match) => {
+                existingLinks.push(match);
+                return `<!--LINK_PLACEHOLDER_${placeholder++}-->`;
+            },
+        );
+
+        // Escape HTML entities
+        result = result
+            .replaceAll(/</g, "&lt;")
+            .replaceAll(/>/g, "&gt;");
+
+        // Add new links for sequences
+        result = result.replaceAll(
+            /(A\d{6})/g,
+            `<a href="#$1" class="seq-link">$1</a>`,
+        );
+
+        // Add links for user names
+        result = result.replaceAll(
+            /_([a-zA-Z\. ]{3,30})_/g,
+            `<a href="${config.wikiURL}/User:$1">$1</a>`,
+        );
+
+        // Restore existing links from placeholders
+        for (let i = 0; i < existingLinks.length; i++) {
+            result = result.replace(
+                `<!--LINK_PLACEHOLDER_${i}-->`,
+                existingLinks[i],
             );
+        }
+
+        return result;
     }
 
     private _splitLines(lines: string | string[]) {
@@ -107,7 +120,8 @@ export class SequenceView {
             return "";
         }
         if (label === config.sections.keyword) {
-            return this._displayKeywordSection(lines as string);
+            const keywordStr = Array.isArray(lines) ? lines.join(",") : lines;
+            return this._displayKeywordSection(keywordStr);
         } else {
             return `<br />
                 <div class="section">

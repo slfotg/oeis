@@ -4,7 +4,7 @@ import { SequenceProvider } from "../sequence";
 import { SequenceView } from "../view";
 
 export class SequenceViewController {
-    private visibleSequences: { [key: string]: vscode.WebviewPanel } = {};
+    private visibleSequences: Map<string, vscode.WebviewPanel> = new Map();
     private sequenceProvider: SequenceProvider;
     private context: vscode.ExtensionContext;
 
@@ -17,15 +17,15 @@ export class SequenceViewController {
     }
 
     public registerSequenceView(sequenceId: string, view: vscode.WebviewPanel) {
-        this.visibleSequences[sequenceId] = view;
+        this.visibleSequences.set(sequenceId, view);
         view.iconPath = vscode.Uri.parse("https://oeis.org/favicon.ico");
         view.onDidDispose(() => {
-            delete this.visibleSequences[sequenceId];
+            this.visibleSequences.delete(sequenceId);
         });
     }
 
     public openSequenceView(sequenceId: string) {
-        const view = this.visibleSequences[sequenceId];
+        const view = this.visibleSequences.get(sequenceId);
         if (!view) {
             throw new Error(`Sequence view ${sequenceId} not found`);
         }
@@ -33,7 +33,7 @@ export class SequenceViewController {
     }
 
     private sequenceViewExists(sequenceId: string) {
-        return !!this.visibleSequences[sequenceId];
+        return this.visibleSequences.has(sequenceId);
     }
 
     showSequence(sequenceId?: string) {

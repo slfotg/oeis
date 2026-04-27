@@ -1,3 +1,4 @@
+import * as vscode from "vscode";
 import { Memento } from "vscode";
 
 type stringType = string | string[];
@@ -68,34 +69,49 @@ export interface SequenceProvider {
 class CachedSequenceProvider implements SequenceProvider {
     private cache: Memento = {} as Memento;
     private searchUrl: string = "https://oeis.org/search";
+    private userAgentHeader;
 
     constructor(state: Memento, searchUrl?: string) {
         this.cache = state;
         if (searchUrl) {
             this.searchUrl = searchUrl;
         }
+        const ext = vscode.extensions.getExtension("slfotg.oeis");
+        const version = ext?.packageJSON?.version ?? "0.0.0";
+        this.userAgentHeader = `slfotg.oeis/${version} (slfotg@gmail.com)`;
     }
 
     async search(text: string): Promise<SequenceInfo[]> {
-        const params = new URLSearchParams({
-            q: text,
-            fmt: "json",
-        });
-        const response = await fetch(`${this.searchUrl}?${params}`, {
-            method: "GET",
-            headers: {
-                "User-Agent": "slfotg.oeis/0.4.0 (slfotg@gmail.com)",
-            },
-        });
-        const info = await response.json();
-        if (info) {
-            const results = info as ResponseInfo[];
-            const data: SequenceInfo[] = results.map(fromResponse);
-            for (const seq of data) {
-                this.cache.update(seq.sequenceId, { ...seq });
+        try {
+            const params = new URLSearchParams({
+                q: text,
+                fmt: "json",
+            });
+            const response = await fetch(`${this.searchUrl}?${params}`, {
+                method: "GET",
+                headers: {
+                    "User-Agent": this.userAgentHeader,
+                },
+            });
+            if (!response.ok) {
+                throw new Error(
+                    `OEIS API error: ${response.status} ${response.statusText}`,
+                );
             }
-            return data;
-        } else {
+            const info = await response.json();
+            if (info && Array.isArray(info)) {
+                const data: SequenceInfo[] = info.map(fromResponse);
+                for (const seq of data) {
+                    this.cache.update(seq.sequenceId, { ...seq });
+                }
+                return data;
+            } else {
+                return [];
+            }
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : String(error);
+            vscode.window.showErrorMessage(`OEIS search error: ${message}`);
             return [];
         }
     }

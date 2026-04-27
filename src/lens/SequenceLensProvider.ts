@@ -2,17 +2,19 @@ import * as vscode from "vscode";
 import { Command } from "../config";
 
 class SequenceIdLens extends vscode.CodeLens {
-    public sequenceId: string;
-
     constructor(range: vscode.Range, sequenceId: string) {
         super(range);
-        this.sequenceId = sequenceId;
+        this.command = {
+            title: sequenceId,
+            tooltip: `Show sequence ${sequenceId}`,
+            command: Command.ShowSequence,
+            arguments: [sequenceId],
+        };
     }
 }
 
 export class SequenceLensProvider implements vscode.CodeLensProvider {
     private codeLenses: SequenceIdLens[] = [];
-    private readonly idRegex: RegExp = /A\d{6}/g;
     private _onDidChangeCodeLenses: vscode.EventEmitter<void> =
         new vscode.EventEmitter<void>();
     public readonly onDidChangeCodeLenses: vscode.Event<void> =
@@ -34,10 +36,10 @@ export class SequenceLensProvider implements vscode.CodeLensProvider {
                 .get("enableCodeLens", true)
         ) {
             this.codeLenses = [];
-            const regex = new RegExp(this.idRegex);
+            const idRegex = /A\d{6}/g;
             const text = document.getText();
             let matches;
-            while ((matches = regex.exec(text)) !== null) {
+            while ((matches = idRegex.exec(text)) !== null) {
                 const line = document.lineAt(
                     document.positionAt(matches.index).line,
                 );
@@ -45,7 +47,7 @@ export class SequenceLensProvider implements vscode.CodeLensProvider {
                 const position = new vscode.Position(line.lineNumber, indexOf);
                 const range = document.getWordRangeAtPosition(
                     position,
-                    new RegExp(this.idRegex),
+                    /A\d{6}/,
                 );
                 if (range) {
                     this.codeLenses.push(new SequenceIdLens(range, matches[0]));
@@ -65,12 +67,6 @@ export class SequenceLensProvider implements vscode.CodeLensProvider {
                 .getConfiguration("oeis")
                 .get("enableCodeLens", true)
         ) {
-            codeLens.command = {
-                title: codeLens.sequenceId,
-                tooltip: `Show sequence ${codeLens.sequenceId}`,
-                command: Command.ShowSequence,
-                arguments: [codeLens.sequenceId],
-            };
             return codeLens;
         }
         return null;
